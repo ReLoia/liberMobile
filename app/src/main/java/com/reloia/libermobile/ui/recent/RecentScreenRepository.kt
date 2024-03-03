@@ -11,7 +11,7 @@ interface RecentScreenRepository {
 // You'd replace this with actual database or network interaction
 class RecentScreenRepositoryImpl : RecentScreenRepository {
     override suspend fun getRecentItems(): List<RecentItem> {
-        delay(1000) // Simulating network delay
+//        delay(1000) // Simulating network delay
         return listOf(
             RecentItem(1, "Document X", System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000),
             RecentItem(2, "Image File", System.currentTimeMillis() - 12 * 60 * 60 * 1000),
