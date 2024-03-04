@@ -2,6 +2,7 @@ package com.reloia.libermobile
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.EnterTransition
@@ -9,64 +10,59 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabPosition
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.reloia.libermobile.ui.library.LibraryScreen
 import com.reloia.libermobile.ui.library.LibraryScreenRepositoryImpl
 import com.reloia.libermobile.ui.library.LibraryScreenViewModel
@@ -89,6 +85,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // TODO: replace icons with better ones
         val items = listOf(
             NavBarItem(
                 getString(R.string.library),
@@ -102,6 +99,18 @@ class MainActivity : ComponentActivity() {
                 Icons.Outlined.Refresh,
                 "recent"
             ),
+            NavBarItem(
+                getString(R.string.discover),
+                Icons.Filled.CheckCircle,
+                Icons.Outlined.CheckCircle,
+                "discover"
+            ),
+            NavBarItem(
+                getString(R.string.more),
+                Icons.Filled.MoreVert,
+                Icons.Outlined.MoreVert,
+                "more"
+            )
         )
 
         setContent {
@@ -117,6 +126,20 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(false)
             }
 
+            // Boolean to check if the current selected item has a search bar
+            val hasSearch = arrayListOf("library", "recent").contains(items[selectedIndex].route)
+            val sheetState = rememberModalBottomSheetState()
+            var showBottomSheet by remember {
+                mutableStateOf(false)
+            }
+            var expanded by remember {
+                mutableStateOf(false)
+            }
+            if (!hasSearch) {
+                isSearchOpen = false
+                search = ""
+            }
+
             val context = androidx.compose.ui.platform.LocalContext.current
 
             LiberMobileTheme {
@@ -126,9 +149,11 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Scaffold(
                         topBar = {
+                            if (items[selectedIndex].route == "more") return@Scaffold
                             TopAppBar(
                                 title = {
-                                    if (isSearchOpen) {
+                                    // If the current selected item has a search bar and it's open, show the search bar
+                                    if (hasSearch && isSearchOpen) {
                                         Row(modifier = Modifier.fillMaxWidth()) {
                                             TextField(
                                                 value = search,
@@ -165,10 +190,10 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                     } else
-                                        Text(text = "liberMobile")
+                                        Text(text = items[selectedIndex].title)
                                 },
                                 actions = {
-                                    if (!isSearchOpen) {
+                                    if (hasSearch && !isSearchOpen) {
                                         IconButton(onClick = {
                                             isSearchOpen = true
                                             search = ""
@@ -178,7 +203,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 navigationIcon = {
-                                    if (isSearchOpen) {
+                                    if (hasSearch && isSearchOpen) {
                                         IconButton(onClick = {
                                             isSearchOpen = false
                                             search = ""
@@ -192,6 +217,52 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         },
+                        bottomBar = {
+                            NavigationBar {
+                                items.forEachIndexed { index, item ->
+                                    NavigationBarItem(
+                                        icon = {
+                                               Icon(
+                                                   imageVector = if (selectedIndex == index) item.selectedIcon else item.unselectedIcon,
+                                                    contentDescription = item.title
+                                               )
+                                        },
+                                        label = { Text(text = item.title) },
+                                        selected = selectedIndex == index,
+                                        onClick = {
+                                            if (selectedIndex != index) {
+                                                selectedIndex = index
+                                                navController.navigate(item.route) {
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                    popUpTo(navController.graph.startDestinationId) {
+                                                        saveState = true
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            
+                            }
+                        },
+                        floatingActionButton = {
+                            if (items[selectedIndex].route == "discover") {
+                                ExtendedFloatingActionButton(
+                                    onClick = {
+                                        showBottomSheet = true
+                                    },
+                                    text = { Text(stringResource(R.string.text_filter)) },
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.Filled.List,
+                                            contentDescription = "Filters"
+                                        )
+                                    }
+                                )
+                            }
+                        }
+
                     ) {
                         Surface(
                             modifier = Modifier
@@ -199,15 +270,6 @@ class MainActivity : ComponentActivity() {
                                 .padding(it)
                         ) {
                             Column {
-                                BrowseCategoryTabs(
-                                    items = items,
-                                    selectedIndex = selectedIndex,
-                                    onSelected = {
-                                        selectedIndex = it
-                                        navController.navigate(items[it].route)
-                                    }
-                                )
-
                                 if (isSearchOpen && search.isNotEmpty()) {
                                     Row(
                                         modifier = Modifier
@@ -217,7 +279,8 @@ class MainActivity : ComponentActivity() {
                                                     Intent(
                                                         context,
                                                         BrowseActivity::class.java
-                                                    ).putExtra("type", "global")
+                                                    )
+                                                        .putExtra("type", "global")
                                                         .putExtra("globalSearch", search)
                                                 )
                                             }
@@ -258,6 +321,7 @@ class MainActivity : ComponentActivity() {
                                     exitTransition = {
                                         ExitTransition.None
                                     },
+                                    modifier = Modifier.fillMaxSize()
                                 ) {
                                     navController.addOnDestinationChangedListener { _, backStackEntry, _ ->
                                         if (backStackEntry != null) {
@@ -278,10 +342,72 @@ class MainActivity : ComponentActivity() {
                                             RecentScreenViewModel(RecentScreenRepositoryImpl())
                                         RecentScreen(viewModel)
                                     }
+
+                                    // TODO: fare discover
+                                    composable("discover") {
+                                        SearchScreen(search)
+                                    }
+                                    // TODO: fare more
+                                    composable("more") {
+                                        Text(text = "More")
+                                    }
                                 }
                             }
 
+                            Log.w(
+                                "MainActivity",
+                                "Selected index: $selectedIndex, route: ${items[selectedIndex].route}, showBottomSheet: $showBottomSheet"
+                            )
+                            if (items[selectedIndex].route == "discover" && showBottomSheet) {
+                                ModalBottomSheet(
+                                    onDismissRequest = {
+                                        showBottomSheet = false
+                                    },
+                                    sheetState = sheetState,
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(MaterialTheme.colorScheme.surface)
+                                    ) {
+                                        Text(
+                                            text = "Filters",
+                                            modifier = Modifier
+                                                .padding(16.dp, 8.dp)
+                                                .fillMaxWidth()
+                                        )
+//                                        Generi:
+//                                      arte e architettura
+//                                      letteratura fantastica
+//                                      manuali
+//                                      poesia
+//                                      religione
+//                                      Risorgimento
+//                                      saggi e trattati
+//                                      Scapigliatura
+//                                      teatro
+//                                      Verismo
+//                                      viaggiare
+//                                        TODO: Aggiungere una row con titolo "Genere" e un selector con i generi
+                                        Row {
+                                            Text(
+                                                text = "Genere",
+                                                modifier = Modifier
+                                                    .padding(16.dp, 8.dp)
+                                                    .fillMaxWidth()
+                                            )
+                                            ExposedDropdownMenuBox(
+                                                expanded = expanded,
+                                                onExpandedChange = { expanded = it },
+                                            ) {
+//                                                TextField(value = , onValueChange = )
+                                            }
+                                        }
 
+                                    }
+
+                                }
+                            }
                         }
 
                     }
@@ -291,7 +417,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Unused
+// TODO: spostare in un file separato
 @Composable
 fun SearchScreen(search: String = "") {
     Surface(
@@ -302,99 +428,9 @@ fun SearchScreen(search: String = "") {
     ) {
         val context = androidx.compose.ui.platform.LocalContext.current
         Column(
-            // element gap
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(1.dp)
         ) {
-            if (search.isNotEmpty()) {
-                Text(text = "Search: $search")
-            } else {
-                Text(text = "Esplora libri, autori e molto altro...")
-                BrowseTypeElement(
-                    type = "Autori",
-                    description = "Cerca libri per autore",
-                    onClick = {
-                        context.startActivity(
-                            Intent(
-                                context,
-                                BrowseActivity::class.java
-                            ).putExtra("type", "author")
-                        )
-                    })
-                BrowseTypeElement(
-                    type = "Libri",
-                    description = "Cerca libri per titolo",
-                    onClick = {
-                        context.startActivity(
-                            Intent(
-                                context,
-                                BrowseActivity::class.java
-                            ).putExtra("type", "title")
-                        )
-                    })
-                BrowseTypeElement(
-                    type = "Argomento",
-                    description = "Cerca libri per argomento",
-                    onClick = {
-                        context.startActivity(
-                            Intent(
-                                context,
-                                BrowseActivity::class.java
-                            ).putExtra("type", "argument")
-                        )
-                    })
-            }
-        }
-    }
-}
-
-@Composable
-fun BrowseTypeElement(
-    type: String,
-    description: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(8.dp, 8.dp)
-    ) {
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = type,
-                fontSize = 18.sp
-            )
-            Text(
-                text = description,
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-        }
-    }
-}
-
-@Composable
-fun BrowseCategoryTabs(
-    items: List<NavBarItem>,
-    selectedIndex: Int,
-    onSelected: (Int) -> Unit,
-) {
-    ScrollableTabRow(
-        selectedTabIndex = selectedIndex,
-        modifier = Modifier
-            .height(48.dp)
-            .fillMaxWidth(),
-        edgePadding = 0.dp
-    ) {
-        items.forEachIndexed { index, item ->
-            Tab(
-                text = { Text(text = item.title) },
-                selected = selectedIndex == index,
-                onClick = { onSelected(index) },
-                modifier = Modifier
-            )
+//            TODO:  trasformare in una lazycolumn e caricare libri da HTTP
         }
     }
 }
