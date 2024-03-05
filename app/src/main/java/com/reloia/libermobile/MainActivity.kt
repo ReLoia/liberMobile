@@ -2,9 +2,10 @@ package com.reloia.libermobile
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
@@ -18,20 +19,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Clear
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,10 +52,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -85,49 +83,71 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO: replace icons with better ones
-        val items = listOf(
-            NavBarItem(
-                getString(R.string.library),
-                Icons.Filled.Home,
-                Icons.Outlined.Home,
-                "library"
-            ),
-            NavBarItem(
-                getString(R.string.recent),
-                Icons.Filled.Refresh,
-                Icons.Outlined.Refresh,
-                "recent"
-            ),
-            NavBarItem(
-                getString(R.string.discover),
-                Icons.Filled.CheckCircle,
-                Icons.Outlined.CheckCircle,
-                "discover"
-            ),
-            NavBarItem(
-                getString(R.string.more),
-                Icons.Filled.MoreVert,
-                Icons.Outlined.MoreVert,
-                "more"
-            )
-        )
-
         setContent {
+            val items = listOf(
+                NavBarItem(
+                    getString(R.string.library),
+                    ImageVector.vectorResource(id = R.drawable.baseline_local_library_24),
+                    ImageVector.vectorResource(id = R.drawable.outline_local_library_24),
+                    "library"
+                ),
+                NavBarItem(
+                    getString(R.string.recent),
+                    ImageVector.vectorResource(id = R.drawable.baseline_history_24),
+                    ImageVector.vectorResource(id = R.drawable.baseline_history_24),
+                    "recent"
+                ),
+                NavBarItem(
+                    getString(R.string.discover),
+                    ImageVector.vectorResource(id = R.drawable.baseline_public_24),
+                    ImageVector.vectorResource(id = R.drawable.twotone_public_24),
+                    "discover"
+                ),
+                NavBarItem(
+                    getString(R.string.more),
+                    Icons.Filled.MoreVert,
+                    Icons.Outlined.MoreVert,
+                    "more"
+                )
+            )
+
+
             var selectedIndex by rememberSaveable {
                 mutableIntStateOf(0)
             }
             val navController = rememberNavController()
 
+
+            // Boolean to check if the current selected item has a search bar
+            // Search for variables for library and recent
             var search by rememberSaveable {
                 mutableStateOf("")
             }
             var isSearchOpen by rememberSaveable {
                 mutableStateOf(false)
             }
-
-            // Boolean to check if the current selected item has a search bar
             val hasSearch = arrayListOf("library", "recent").contains(items[selectedIndex].route)
+            if (!hasSearch) {
+                isSearchOpen = false
+                search = ""
+            }
+            // Search for variables for discover
+//            var globalSearch by rememberSaveable {
+//                mutableStateOf("")
+//            }
+            var globalSearch = ""
+            var isGlobalSearchOpen by rememberSaveable {
+                mutableStateOf(false)
+            }
+            val hasGlobalSearch = items[selectedIndex].route == "discover"
+            if (!hasGlobalSearch) {
+                globalSearch = ""
+                isGlobalSearchOpen = false
+            }
+
+
+
+            // Bottom sheet for filters
             val sheetState = rememberModalBottomSheetState()
             var showBottomSheet by remember {
                 mutableStateOf(false)
@@ -135,12 +155,43 @@ class MainActivity : ComponentActivity() {
             var expanded by remember {
                 mutableStateOf(false)
             }
-            if (!hasSearch) {
-                isSearchOpen = false
-                search = ""
+            // TODO: migliorare la gestione dei filtri
+            val filters = arrayListOf<String>(
+                "Arte e architettura",
+                "Letteratura fantastica",
+                "Manuali",
+                "Poesia",
+                "Religione",
+                "Risorgimento",
+                "Saggi e trattati",
+                "Scapigliatura",
+                "Teatro",
+                "Verismo",
+                "Viaggiare"
+            )
+//            var selectedFilter by remember {
+//                mutableStateOf(0)
+//            }
+            var searchedFilter by remember {
+                mutableStateOf("")
             }
 
+
             val context = androidx.compose.ui.platform.LocalContext.current
+
+            // Close search bar when back button is pressed
+            BackHandler (
+                enabled = isSearchOpen || isGlobalSearchOpen,
+            ) {
+                if (isSearchOpen) {
+                    isSearchOpen = false
+                    search = ""
+                }
+                if (isGlobalSearchOpen) {
+                    isGlobalSearchOpen = false
+                    globalSearch = ""
+                }
+            }
 
             LiberMobileTheme {
                 Surface(
@@ -173,7 +224,9 @@ class MainActivity : ComponentActivity() {
                                                         IconButton(onClick = { search = "" }) {
                                                             Icon(
                                                                 Icons.Outlined.Clear,
-                                                                contentDescription = "Clear search"
+                                                                contentDescription = stringResource(
+                                                                    R.string.clear_search
+                                                                )
                                                             )
                                                         }
                                                     }
@@ -189,7 +242,46 @@ class MainActivity : ComponentActivity() {
                                                 ),
                                             )
                                         }
-                                    } else
+                                    } else if (hasGlobalSearch && isGlobalSearchOpen) {
+                                        Row(modifier = Modifier.fillMaxWidth()) {
+                                            TextField(
+                                                value = globalSearch,
+                                                onValueChange = { globalSearch = it },
+                                                placeholder = {
+                                                    Text(
+                                                        text = "Global Search...",
+                                                        fontSize = 21.sp
+                                                    )
+                                                },
+                                                singleLine = true,
+                                                keyboardOptions = KeyboardOptions.Default.copy(
+                                                    imeAction = ImeAction.Search
+                                                ),
+                                                trailingIcon = {
+                                                    if (globalSearch.isNotEmpty()) {
+                                                        IconButton(onClick = { globalSearch = "" }) {
+                                                            Icon(
+                                                                Icons.Outlined.Clear,
+                                                                contentDescription = stringResource(
+                                                                    R.string.clear_search
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .fillMaxWidth(),
+                                                textStyle = TextStyle.Default.copy(fontSize = 21.sp),
+                                                colors = TextFieldDefaults.colors(
+                                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                    focusedIndicatorColor = MaterialTheme.colorScheme.surface,
+                                                    unfocusedIndicatorColor = MaterialTheme.colorScheme.surface,
+                                                ),
+                                            )
+                                        }
+                                    }
+                                    else
                                         Text(text = items[selectedIndex].title)
                                 },
                                 actions = {
@@ -200,6 +292,13 @@ class MainActivity : ComponentActivity() {
                                         }) {
                                             Icon(Icons.Filled.Search, contentDescription = "Search")
                                         }
+                                    } else if (hasGlobalSearch && !isGlobalSearchOpen) {
+                                        IconButton(onClick = {
+                                            isGlobalSearchOpen = true
+                                            globalSearch = ""
+                                        }) {
+                                            Icon(ImageVector.vectorResource(id = R.drawable.baseline_travel_explore_24), contentDescription = "Search")
+                                        }
                                     }
                                 },
                                 navigationIcon = {
@@ -209,7 +308,7 @@ class MainActivity : ComponentActivity() {
                                             search = ""
                                         }) {
                                             Icon(
-                                                Icons.Outlined.ArrowBack,
+                                                Icons.AutoMirrored.Outlined.ArrowBack,
                                                 contentDescription = "Back"
                                             )
                                         }
@@ -222,10 +321,12 @@ class MainActivity : ComponentActivity() {
                                 items.forEachIndexed { index, item ->
                                     NavigationBarItem(
                                         icon = {
-                                               Icon(
-                                                   imageVector = if (selectedIndex == index) item.selectedIcon else item.unselectedIcon,
-                                                    contentDescription = item.title
-                                               )
+                                                Crossfade(targetState = selectedIndex == index, label = "") {
+                                                    Icon(
+                                                        imageVector = if (it) item.selectedIcon else item.unselectedIcon,
+                                                        contentDescription = item.title
+                                                    )
+                                                }
                                         },
                                         label = { Text(text = item.title) },
                                         selected = selectedIndex == index,
@@ -243,7 +344,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     )
                                 }
-                            
+
                             }
                         },
                         floatingActionButton = {
@@ -255,7 +356,7 @@ class MainActivity : ComponentActivity() {
                                     text = { Text(stringResource(R.string.text_filter)) },
                                     icon = {
                                         Icon(
-                                            imageVector = Icons.Filled.List,
+                                            imageVector = Icons.AutoMirrored.Filled.List,
                                             contentDescription = "Filters"
                                         )
                                     }
@@ -276,6 +377,7 @@ class MainActivity : ComponentActivity() {
                                             .fillMaxWidth()
                                             .clickable {
                                                 context.startActivity(
+                                                    // TODO: eliminare browseActivity e usare DiscoverScreen
                                                     Intent(
                                                         context,
                                                         BrowseActivity::class.java
@@ -345,7 +447,7 @@ class MainActivity : ComponentActivity() {
 
                                     // TODO: fare discover
                                     composable("discover") {
-                                        SearchScreen(search)
+                                        DiscoverScreen(globalSearch)
                                     }
                                     // TODO: fare more
                                     composable("more") {
@@ -354,10 +456,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            Log.w(
-                                "MainActivity",
-                                "Selected index: $selectedIndex, route: ${items[selectedIndex].route}, showBottomSheet: $showBottomSheet"
-                            )
+                            // Filters Bottom Sheet for Discover screen
                             if (items[selectedIndex].route == "discover" && showBottomSheet) {
                                 ModalBottomSheet(
                                     onDismissRequest = {
@@ -369,6 +468,7 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .background(MaterialTheme.colorScheme.surface)
+                                            .padding(bottom = 56.dp)
                                     ) {
                                         Text(
                                             text = "Filters",
@@ -376,40 +476,88 @@ class MainActivity : ComponentActivity() {
                                                 .padding(16.dp, 8.dp)
                                                 .fillMaxWidth()
                                         )
-//                                        Generi:
-//                                      arte e architettura
-//                                      letteratura fantastica
-//                                      manuali
-//                                      poesia
-//                                      religione
-//                                      Risorgimento
-//                                      saggi e trattati
-//                                      Scapigliatura
-//                                      teatro
-//                                      Verismo
-//                                      viaggiare
 //                                        TODO: Aggiungere una row con titolo "Genere" e un selector con i generi
                                         Row {
-                                            Text(
-                                                text = "Genere",
-                                                modifier = Modifier
-                                                    .padding(16.dp, 8.dp)
-                                                    .fillMaxWidth()
-                                            )
+//                                            Text(
+//                                                text = "Genere",
+//                                                modifier = Modifier
+//                                                    .padding(16.dp, 8.dp)
+//                                                    .fillMaxWidth()
+//                                            )
                                             ExposedDropdownMenuBox(
                                                 expanded = expanded,
                                                 onExpandedChange = { expanded = it },
+                                                modifier = Modifier.background(androidx.compose.ui.graphics.Color.Red),
+//                                                content = {
+//                                                    Text(text = "Genere")
+//                                                }
                                             ) {
-//                                                TextField(value = , onValueChange = )
+                                                TextField(
+                                                    value = searchedFilter,
+                                                    onValueChange = { searchedFilter = it },
+//                                                    placeholder = {
+//                                                        Text(
+//                                                            text = "Genere",
+//                                                            fontSize = 21.sp
+//                                                        )
+//                                                    },
+                                                    label = {
+                                                        Text(
+                                                            text = "Genere",
+//                                                            fontSize = 21.sp
+                                                        )
+                                                    },
+                                                    modifier = Modifier.menuAnchor(),
+                                                    trailingIcon = {
+//                                                        if (searchedFilter.isNotEmpty()) {
+//                                                            IconButton(onClick = { searchedFilter = "" }) {
+//                                                                Icon(
+//                                                                    Icons.Outlined.Clear,
+//                                                                    contentDescription = "Clear search"
+//                                                                )
+//                                                            }
+//                                                        }
+                                                          ExposedDropdownMenuDefaults.TrailingIcon(
+                                                                expanded = expanded
+                                                          )
+                                                    },
+                                                )
+
+                                                var filteredFilters = filters.filter { it.contains(searchedFilter, ignoreCase = true) }
+                                                if (filteredFilters.isEmpty()) {
+                                                    filteredFilters = filters
+                                                }
+
+                                                DropdownMenu(
+                                                    expanded = expanded,
+                                                    onDismissRequest = { expanded = false },
+                                                    properties = PopupProperties(focusable = true),
+                                                    modifier = Modifier
+                                                        .background(androidx.compose.ui.graphics.Color.White)
+                                                        .exposedDropdownSize(true)
+                                                ) {
+                                                    filteredFilters.forEach { filter ->
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = filter,
+//                                                                    modifier = Modifier.padding(8.dp, 8.dp)
+                                                                )
+                                                                   },
+                                                            onClick = {
+                                                                searchedFilter = filter
+                                                                expanded = false
+                                                            },
+                                                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
-
                                     }
-
                                 }
                             }
                         }
-
                     }
                 }
             }
@@ -419,7 +567,7 @@ class MainActivity : ComponentActivity() {
 
 // TODO: spostare in un file separato
 @Composable
-fun SearchScreen(search: String = "") {
+fun DiscoverScreen(search: String = "") {
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -427,9 +575,21 @@ fun SearchScreen(search: String = "") {
         color = MaterialTheme.colorScheme.background
     ) {
         val context = androidx.compose.ui.platform.LocalContext.current
+        // TODO: trasformare filtri in un oggetto
+        var filters = false
+
         Column(
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(1.dp)
         ) {
+//            TODO: cambiare questa condizione con un controllo 'se ci sono risultati' e mostrare un messaggio di errore più efficace
+            if (search.isEmpty() && !filters) {
+                Text(
+                    text = "Cerca un libro dalla barra di ricerca oppure filtra i risultati",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp, 8.dp)
+                )
+            }
 //            TODO:  trasformare in una lazycolumn e caricare libri da HTTP
         }
     }

@@ -10,4 +10,5 @@
     <string name="discover">Scopri</string>
     <string name="more">Altro</string>
     <string name="text_filter">Filtri</string>
+    <string name="clear_search">Clear search</string>
 </resources>

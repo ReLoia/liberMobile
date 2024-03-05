@@ -1,207 +1,178 @@
 package com.reloia.libermobile.ui.library
 
+import com.reloia.libermobile.data.BookItemData
+
 // Interface defining the contract for interacting with recent items data
 interface RecentScreenRepository {
-    suspend fun getRecentItems(): List<LibraryItem>
+    suspend fun getRecentItems(): List<BookItemData>
 }
 
 // A possible implementation using a simulated network call
 // You'd replace this with actual database or network interaction
 class LibraryScreenRepositoryImpl : RecentScreenRepository {
-    override suspend fun getRecentItems(): List<LibraryItem> {
+    override suspend fun getRecentItems(): List<BookItemData> {
 //        delay(1000) // Simulating network delay
         return listOf(
-            LibraryItem(
+            BookItemData(
                 1,
                 "Document X",
-                System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000,
                 "autore",
                 "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg"
             ),
-            LibraryItem(
+            BookItemData(
                 2,
                 "Image File",
-                System.currentTimeMillis() - 12 * 60 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
+                "autore",
+                type = 1
+            ),
+            BookItemData(
+                3,
+                "Contact: John Doe",
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             ),
-            LibraryItem(
+            BookItemData(
                 3,
                 "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
-                "autore",
-            ),
-            LibraryItem(
-                3,
-                "Contact: John Doe",
-                System.currentTimeMillis() - 30 * 60 * 1000,
                 "autore",
             )
         )
