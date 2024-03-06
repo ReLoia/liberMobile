@@ -11,8 +11,8 @@ android {
         applicationId = "com.reloia.libermobile"
         minSdk = 29
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -51,6 +51,8 @@ android {
 }
 
 dependencies {
+//    TODO: REMOVE okhttp3:logging
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     implementation("org.jsoup:jsoup:1.14.3")
     implementation("androidx.core:core-ktx:1.12.0")

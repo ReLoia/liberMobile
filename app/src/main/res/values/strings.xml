@@ -3,7 +3,7 @@
     <string name="library">Library</string>
     <string name="recent">Recent</string>
     <string name="search">Search</string>
-    <string name="title_activity_browse">BrowseActivity</string>
+    <string name="title_activity_browse">Informations</string>
     <string name="browse_author_title">Autori in ordine</string>
     <string name="browse_title_title">Titoli in ordine</string>
     <string name="browse_argument_title">Argomenti</string>

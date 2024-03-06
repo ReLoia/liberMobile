@@ -1,6 +1,6 @@
 package com.reloia.libermobile.ui.library
 
-import com.reloia.libermobile.data.BookItemData
+import com.reloia.libermobile.model.BookItemData
 
 // Interface defining the contract for interacting with recent items data
 interface RecentScreenRepository {
@@ -14,167 +14,65 @@ class LibraryScreenRepositoryImpl : RecentScreenRepository {
 //        delay(1000) // Simulating network delay
         return listOf(
             BookItemData(
-                1,
+                "https://liberliber.it/autori/autori-0/autore-0",
                 "Document X",
                 "autore",
-                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg"
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
             BookItemData(
-                2,
-                "Image File",
+                "https://liberliber.it/autori/autori-0/autore-0",
+                "Document X",
                 "autore",
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
             BookItemData(
-                3,
-                "Contact: John Doe",
+                "https://liberliber.it/autori/autori-0/autore-0",
+                "Document X",
                 "autore",
-                type = 1
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
             BookItemData(
-                3,
-                "Contact: John Doe",
+                "https://liberliber.it/autori/autori-0/autore-0",
+                "Document X",
                 "autore",
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
             BookItemData(
-                3,
-                "Contact: John Doe",
+                "https://liberliber.it/autori/autori-0/autore-0",
+                "Document X",
                 "autore",
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
             BookItemData(
-                3,
-                "Contact: John Doe",
+                "https://liberliber.it/autori/autori-0/autore-0",
+                "Document X",
                 "autore",
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
             BookItemData(
-                3,
-                "Contact: John Doe",
+                "https://liberliber.it/autori/autori-0/autore-0",
+                "Document X",
                 "autore",
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
             BookItemData(
-                3,
-                "Contact: John Doe",
+                "https://liberliber.it/autori/autori-0/autore-0",
+                "Document X",
                 "autore",
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
             BookItemData(
-                3,
-                "Contact: John Doe",
+                "https://liberliber.it/autori/autori-0/autore-0",
+                "Document X",
                 "autore",
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
             BookItemData(
-                3,
-                "Contact: John Doe",
+                "https://liberliber.it/autori/autori-0/autore-0",
+                "Document X",
                 "autore",
+                "https://cdn.pixabay.com/photo/2016/09/07/10/37/kermit-1651325_1280.jpg",
             ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            ),
-            BookItemData(
-                3,
-                "Contact: John Doe",
-                "autore",
-            )
         )
     }
 }

@@ -20,28 +20,30 @@ fun RecentScreen(viewModel: RecentScreenViewModel) {
     val recentItems by viewModel.recentItems.collectAsState(initial = null)
 
     Surface(
-        modifier = Modifier
-            .fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        modifier =
+            Modifier
+                .fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
     ) {
         Column {
             when (recentItems) {
+                // TODO: move to isLoading state
                 null -> CircularProgressIndicator()
                 emptyList<RecentItem>() -> Text("No recent items found")
                 else -> {
                     LazyColumn {
                         Log.w("RecentScreen", "Recent items: $recentItems")
+
 //                      Necessario perché recentItems diventa null dopo il controllo quando si cambia pagina
                         if (recentItems != null) {
-                            recentItems!!.sortedByDescending { it.timestamp }.let { items(it) { item ->
+                            items(recentItems!!.sortedByDescending { it.timestamp }) { item ->
                                 BookItem(
-                                    id = item.bookData.id,
+                                    url = item.bookData.url,
                                     title = item.bookData.title,
                                     author = item.bookData.author,
                                     cover = item.bookData.cover_url,
-                                    type = item.bookData.type
                                 )
-                            } }
+                            }
                         }
                     }
                 }
@@ -49,20 +51,3 @@ fun RecentScreen(viewModel: RecentScreenViewModel) {
         }
     }
 }
-
-//@Composable
-//fun RecentItemRow(item: RecentItem) {
-//    Row (
-//        modifier = Modifier.height(100.dp).background(color = androidx.compose.ui.graphics.Color.Red)
-//    ) {
-////        TODO: Thumbnail
-//        Column (
-//            modifier = Modifier.weight(1f).padding(0.dp, 8.dp)
-//        )
-//        {
-//            Text(item.bookData.title)
-//            Spacer(modifier = Modifier.height(30.dp))
-//            Text(item.timestamp.toString())
-//        }
-//    }
-//}

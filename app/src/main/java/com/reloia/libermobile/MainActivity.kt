@@ -1,6 +1,6 @@
 package com.reloia.libermobile
 
-import android.content.Intent
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -10,6 +10,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,8 +18,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Clear
@@ -31,6 +35,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
@@ -42,7 +47,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -50,7 +55,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -58,9 +65,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.reloia.libermobile.ui.discover.DiscoverScreen
 import com.reloia.libermobile.ui.library.LibraryScreen
 import com.reloia.libermobile.ui.library.LibraryScreenRepositoryImpl
 import com.reloia.libermobile.ui.library.LibraryScreenViewModel
@@ -78,45 +87,43 @@ data class NavBarItem(
 )
 
 class MainActivity : ComponentActivity() {
-
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val items = listOf(
-                NavBarItem(
-                    getString(R.string.library),
-                    ImageVector.vectorResource(id = R.drawable.baseline_local_library_24),
-                    ImageVector.vectorResource(id = R.drawable.outline_local_library_24),
-                    "library"
-                ),
-                NavBarItem(
-                    getString(R.string.recent),
-                    ImageVector.vectorResource(id = R.drawable.baseline_history_24),
-                    ImageVector.vectorResource(id = R.drawable.baseline_history_24),
-                    "recent"
-                ),
-                NavBarItem(
-                    getString(R.string.discover),
-                    ImageVector.vectorResource(id = R.drawable.baseline_public_24),
-                    ImageVector.vectorResource(id = R.drawable.twotone_public_24),
-                    "discover"
-                ),
-                NavBarItem(
-                    getString(R.string.more),
-                    Icons.Filled.MoreVert,
-                    Icons.Outlined.MoreVert,
-                    "more"
+            val items =
+                listOf(
+                    NavBarItem(
+                        getString(R.string.library),
+                        ImageVector.vectorResource(id = R.drawable.baseline_local_library_24),
+                        ImageVector.vectorResource(id = R.drawable.outline_local_library_24),
+                        "library",
+                    ),
+                    NavBarItem(
+                        getString(R.string.recent),
+                        ImageVector.vectorResource(id = R.drawable.baseline_history_24),
+                        ImageVector.vectorResource(id = R.drawable.baseline_history_24),
+                        "recent",
+                    ),
+                    NavBarItem(
+                        getString(R.string.discover),
+                        ImageVector.vectorResource(id = R.drawable.baseline_public_24),
+                        ImageVector.vectorResource(id = R.drawable.twotone_public_24),
+                        "discover",
+                    ),
+                    NavBarItem(
+                        getString(R.string.more),
+                        Icons.Filled.MoreVert,
+                        Icons.Outlined.MoreVert,
+                        "more",
+                    ),
                 )
-            )
-
 
             var selectedIndex by rememberSaveable {
                 mutableIntStateOf(0)
             }
             val navController = rememberNavController()
-
 
             // Boolean to check if the current selected item has a search bar
             // Search for variables for library and recent
@@ -132,10 +139,13 @@ class MainActivity : ComponentActivity() {
                 search = ""
             }
             // Search for variables for discover
-//            var globalSearch by rememberSaveable {
-//                mutableStateOf("")
-//            }
-            var globalSearch = ""
+            var globalSearch by remember {
+                mutableStateOf("")
+            }
+            // Debounce the search
+            var toGlobalSearch by rememberSaveable {
+                mutableStateOf(globalSearch)
+            }
             var isGlobalSearchOpen by rememberSaveable {
                 mutableStateOf(false)
             }
@@ -144,8 +154,10 @@ class MainActivity : ComponentActivity() {
                 globalSearch = ""
                 isGlobalSearchOpen = false
             }
-
-
+            // Loading variables
+            var isLoading = remember {
+                mutableStateOf(false)
+            }
 
             // Bottom sheet for filters
             val sheetState = rememberModalBottomSheetState()
@@ -167,7 +179,7 @@ class MainActivity : ComponentActivity() {
                 "Scapigliatura",
                 "Teatro",
                 "Verismo",
-                "Viaggiare"
+                "Viaggiare",
             )
 //            var selectedFilter by remember {
 //                mutableStateOf(0)
@@ -176,11 +188,8 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf("")
             }
 
-
-            val context = androidx.compose.ui.platform.LocalContext.current
-
             // Close search bar when back button is pressed
-            BackHandler (
+            BackHandler(
                 enabled = isSearchOpen || isGlobalSearchOpen,
             ) {
                 if (isSearchOpen) {
@@ -193,14 +202,25 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val view = LocalView.current
+            val context = view.context
+            val inDarkMode = isSystemInDarkTheme()
+
             LiberMobileTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
+                    val backgroundColor = MaterialTheme.colorScheme.background
+                    SideEffect {
+                        (context as Activity).window.statusBarColor = backgroundColor.toArgb()
+                        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !inDarkMode
+//                            DarkColor
+                    }
                     Scaffold(
                         topBar = {
                             if (items[selectedIndex].route == "more") return@Scaffold
+
                             TopAppBar(
                                 title = {
                                     // If the current selected item has a search bar and it's open, show the search bar
@@ -212,76 +232,83 @@ class MainActivity : ComponentActivity() {
                                                 placeholder = {
                                                     Text(
                                                         text = "Search...",
-                                                        fontSize = 21.sp
+                                                        fontSize = 21.sp,
                                                     )
                                                 },
                                                 singleLine = true,
                                                 keyboardOptions = KeyboardOptions.Default.copy(
-                                                    imeAction = ImeAction.Search
+                                                    imeAction = ImeAction.Search,
                                                 ),
                                                 trailingIcon = {
                                                     if (search.isNotEmpty()) {
                                                         IconButton(onClick = { search = "" }) {
                                                             Icon(
                                                                 Icons.Outlined.Clear,
-                                                                contentDescription = stringResource(
-                                                                    R.string.clear_search
-                                                                )
+                                                                contentDescription = stringResource(R.string.clear_search),
                                                             )
                                                         }
                                                     }
                                                 },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth(),
                                                 textStyle = TextStyle.Default.copy(fontSize = 21.sp),
-                                                colors = TextFieldDefaults.colors(
-                                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                                    focusedIndicatorColor = MaterialTheme.colorScheme.surface,
-                                                    unfocusedIndicatorColor = MaterialTheme.colorScheme.surface,
-                                                ),
+                                                colors =
+                                                    TextFieldDefaults.colors(
+                                                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                        focusedIndicatorColor = MaterialTheme.colorScheme.surface,
+                                                        unfocusedIndicatorColor = MaterialTheme.colorScheme.surface,
+                                                    ),
                                             )
                                         }
                                     } else if (hasGlobalSearch && isGlobalSearchOpen) {
                                         Row(modifier = Modifier.fillMaxWidth()) {
                                             TextField(
-                                                value = globalSearch,
-                                                onValueChange = { globalSearch = it },
+                                                value = toGlobalSearch,
+                                                onValueChange = { toGlobalSearch = it },
                                                 placeholder = {
                                                     Text(
                                                         text = "Global Search...",
-                                                        fontSize = 21.sp
+                                                        fontSize = 21.sp,
                                                     )
                                                 },
                                                 singleLine = true,
-                                                keyboardOptions = KeyboardOptions.Default.copy(
-                                                    imeAction = ImeAction.Search
-                                                ),
+                                                keyboardOptions =
+                                                    KeyboardOptions.Default.copy(
+                                                        imeAction = ImeAction.Search,
+                                                    ),
+                                                keyboardActions =
+                                                    KeyboardActions(
+                                                        onSearch = {
+                                                            globalSearch = toGlobalSearch
+                                                            isGlobalSearchOpen = false
+                                                        },
+                                                    ),
                                                 trailingIcon = {
-                                                    if (globalSearch.isNotEmpty()) {
-                                                        IconButton(onClick = { globalSearch = "" }) {
+                                                    if (toGlobalSearch.isNotEmpty()) {
+                                                        IconButton(onClick = { toGlobalSearch = "" }) {
                                                             Icon(
                                                                 Icons.Outlined.Clear,
-                                                                contentDescription = stringResource(
-                                                                    R.string.clear_search
-                                                                )
+                                                                contentDescription = stringResource(R.string.clear_search),
                                                             )
                                                         }
                                                     }
                                                 },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth(),
                                                 textStyle = TextStyle.Default.copy(fontSize = 21.sp),
-                                                colors = TextFieldDefaults.colors(
-                                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                                    focusedIndicatorColor = MaterialTheme.colorScheme.surface,
-                                                    unfocusedIndicatorColor = MaterialTheme.colorScheme.surface,
-                                                ),
+                                                colors =
+                                                    TextFieldDefaults.colors(
+                                                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                        focusedIndicatorColor = MaterialTheme.colorScheme.surface,
+                                                        unfocusedIndicatorColor = MaterialTheme.colorScheme.surface,
+                                                    ),
                                             )
                                         }
-                                    }
-                                    else
+                                    } else
                                         Text(text = items[selectedIndex].title)
                                 },
                                 actions = {
@@ -292,6 +319,7 @@ class MainActivity : ComponentActivity() {
                                         }) {
                                             Icon(Icons.Filled.Search, contentDescription = "Search")
                                         }
+//                                        TODO: add option to handle how the entries will be visualized and sorted
                                     } else if (hasGlobalSearch && !isGlobalSearchOpen) {
                                         IconButton(onClick = {
                                             isGlobalSearchOpen = true
@@ -302,18 +330,20 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 navigationIcon = {
-                                    if (hasSearch && isSearchOpen) {
+                                    if ((hasSearch && isSearchOpen) || (hasGlobalSearch && isGlobalSearchOpen)) {
                                         IconButton(onClick = {
                                             isSearchOpen = false
                                             search = ""
+                                            isGlobalSearchOpen = false
+                                            globalSearch = ""
                                         }) {
                                             Icon(
                                                 Icons.AutoMirrored.Outlined.ArrowBack,
-                                                contentDescription = "Back"
+                                                contentDescription = "Back",
                                             )
                                         }
                                     }
-                                }
+                                },
                             )
                         },
                         bottomBar = {
@@ -321,12 +351,12 @@ class MainActivity : ComponentActivity() {
                                 items.forEachIndexed { index, item ->
                                     NavigationBarItem(
                                         icon = {
-                                                Crossfade(targetState = selectedIndex == index, label = "") {
-                                                    Icon(
-                                                        imageVector = if (it) item.selectedIcon else item.unselectedIcon,
-                                                        contentDescription = item.title
-                                                    )
-                                                }
+                                            Crossfade(targetState = selectedIndex == index, label = "") {
+                                                Icon(
+                                                    imageVector = if (it) item.selectedIcon else item.unselectedIcon,
+                                                    contentDescription = item.title,
+                                                )
+                                            }
                                         },
                                         label = { Text(text = item.title) },
                                         selected = selectedIndex == index,
@@ -334,6 +364,8 @@ class MainActivity : ComponentActivity() {
                                             if (selectedIndex != index) {
                                                 selectedIndex = index
                                                 navController.navigate(item.route) {
+                                                    isLoading.value = false
+
                                                     launchSingleTop = true
                                                     restoreState = true
                                                     popUpTo(navController.graph.startDestinationId) {
@@ -341,10 +373,9 @@ class MainActivity : ComponentActivity() {
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
                                     )
                                 }
-
                             }
                         },
                         floatingActionButton = {
@@ -357,49 +388,46 @@ class MainActivity : ComponentActivity() {
                                     icon = {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.List,
-                                            contentDescription = "Filters"
+                                            contentDescription = "Filters",
                                         )
-                                    }
+                                    },
                                 )
                             }
-                        }
-
+                        },
                     ) {
                         Surface(
-                            modifier = Modifier
+                            modifier =
+                            Modifier
                                 .fillMaxSize()
-                                .padding(it)
+                                .padding(it),
                         ) {
                             Column {
+                                if (isLoading.value)
+                                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+
                                 if (isSearchOpen && search.isNotEmpty()) {
                                     Row(
-                                        modifier = Modifier
+                                        modifier =
+                                        Modifier
                                             .fillMaxWidth()
                                             .clickable {
-                                                context.startActivity(
-                                                    // TODO: eliminare browseActivity e usare DiscoverScreen
-                                                    Intent(
-                                                        context,
-                                                        BrowseActivity::class.java
-                                                    )
-                                                        .putExtra("type", "global")
-                                                        .putExtra("globalSearch", search)
-                                                )
-                                            }
-                                            .padding(8.dp, 8.dp)
+                                                navController.navigate("discover")
 
+                                                globalSearch = search
+                                                isSearchOpen = false
+                                                isGlobalSearchOpen = true
+                                            }
+                                            .padding(8.dp, 8.dp),
                                     ) {
                                         Column {
                                             Text(
                                                 text = "Ricerca globale",
-                                                fontSize = 18.sp
+                                                fontSize = 18.sp,
                                             )
                                             Text(
                                                 text = "Cerca \"$search\" in tutto il catalogo",
                                                 fontSize = 12.sp,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(
-                                                    alpha = 0.6f
-                                                )
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                             )
                                         }
                                     }
@@ -407,23 +435,22 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier
                                             .height(1.dp)
                                             .background(
-                                                MaterialTheme.colorScheme.onSurface.copy(
-                                                    alpha = 0.4f
-                                                )
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                                             )
-                                            .fillMaxWidth()
+                                            .fillMaxWidth(),
                                     )
                                 }
 
                                 NavHost(
-                                    navController, startDestination = "library",
+                                    navController,
+                                    startDestination = "library",
                                     enterTransition = {
                                         EnterTransition.None
                                     },
                                     exitTransition = {
                                         ExitTransition.None
                                     },
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier.fillMaxSize(),
                                 ) {
                                     navController.addOnDestinationChangedListener { _, backStackEntry, _ ->
                                         if (backStackEntry != null) {
@@ -447,7 +474,7 @@ class MainActivity : ComponentActivity() {
 
                                     // TODO: fare discover
                                     composable("discover") {
-                                        DiscoverScreen(globalSearch)
+                                        DiscoverScreen(globalSearch, isLoading)
                                     }
                                     // TODO: fare more
                                     composable("more") {
@@ -468,13 +495,13 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .background(MaterialTheme.colorScheme.surface)
-                                            .padding(bottom = 56.dp)
+                                            .padding(bottom = 56.dp),
                                     ) {
                                         Text(
                                             text = "Filters",
                                             modifier = Modifier
                                                 .padding(16.dp, 8.dp)
-                                                .fillMaxWidth()
+                                                .fillMaxWidth(),
                                         )
 //                                        TODO: Aggiungere una row con titolo "Genere" e un selector con i generi
                                         Row {
@@ -517,9 +544,7 @@ class MainActivity : ComponentActivity() {
 //                                                                )
 //                                                            }
 //                                                        }
-                                                          ExposedDropdownMenuDefaults.TrailingIcon(
-                                                                expanded = expanded
-                                                          )
+                                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                                                     },
                                                 )
 
@@ -532,9 +557,10 @@ class MainActivity : ComponentActivity() {
                                                     expanded = expanded,
                                                     onDismissRequest = { expanded = false },
                                                     properties = PopupProperties(focusable = true),
-                                                    modifier = Modifier
+                                                    modifier =
+                                                    Modifier
                                                         .background(androidx.compose.ui.graphics.Color.White)
-                                                        .exposedDropdownSize(true)
+                                                        .exposedDropdownSize(true),
                                                 ) {
                                                     filteredFilters.forEach { filter ->
                                                         DropdownMenuItem(
@@ -543,12 +569,12 @@ class MainActivity : ComponentActivity() {
                                                                     text = filter,
 //                                                                    modifier = Modifier.padding(8.dp, 8.dp)
                                                                 )
-                                                                   },
+                                                            },
                                                             onClick = {
                                                                 searchedFilter = filter
                                                                 expanded = false
                                                             },
-                                                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                                                         )
                                                     }
                                                 }
@@ -565,32 +591,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// TODO: spostare in un file separato
-@Composable
-fun DiscoverScreen(search: String = "") {
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp, 0.dp),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        val context = androidx.compose.ui.platform.LocalContext.current
-        // TODO: trasformare filtri in un oggetto
-        var filters = false
-
-        Column(
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(1.dp)
-        ) {
-//            TODO: cambiare questa condizione con un controllo 'se ci sono risultati' e mostrare un messaggio di errore più efficace
-            if (search.isEmpty() && !filters) {
-                Text(
-                    text = "Cerca un libro dalla barra di ricerca oppure filtra i risultati",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp, 8.dp)
-                )
-            }
-//            TODO:  trasformare in una lazycolumn e caricare libri da HTTP
-        }
-    }
-}
