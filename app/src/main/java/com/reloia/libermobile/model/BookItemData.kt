@@ -7,7 +7,8 @@ package com.reloia.libermobile.model
  * @param title The title of the book
  * @param author The author of the book
  * @param cover_url The URL to the cover image of the book
- * @param type The type of the book - 0 for regular books, 1 for audiobooks
+ * @param description A description of the book
+ * @param reading_options A list of reading options for the book
 
  */
 data class BookItemData(
@@ -17,4 +18,5 @@ data class BookItemData(
 //    val timestamp: Long,
     val cover_url: String? = null,
     val description: String? = null,
+    val reading_options: List<ReadingOption>? = null,
 )

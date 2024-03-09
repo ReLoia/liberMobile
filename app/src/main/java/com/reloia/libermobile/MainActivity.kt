@@ -1,6 +1,8 @@
 package com.reloia.libermobile
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -11,20 +13,24 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.DropdownMenu
@@ -47,6 +53,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -55,6 +63,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
@@ -138,6 +148,7 @@ class MainActivity : ComponentActivity() {
                 isSearchOpen = false
                 search = ""
             }
+            val searchFocusRequester = remember { FocusRequester() }
             // Search for variables for discover
             var globalSearch by remember {
                 mutableStateOf("")
@@ -154,6 +165,7 @@ class MainActivity : ComponentActivity() {
                 globalSearch = ""
                 isGlobalSearchOpen = false
             }
+            val globalSearchFocusRequester = remember { FocusRequester() }
             // Loading variables
             var isLoading = remember {
                 mutableStateOf(false)
@@ -168,7 +180,7 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(false)
             }
             // TODO: migliorare la gestione dei filtri
-            val filters = arrayListOf<String>(
+            val filters = arrayListOf(
                 "Arte e architettura",
                 "Letteratura fantastica",
                 "Manuali",
@@ -204,6 +216,7 @@ class MainActivity : ComponentActivity() {
 
             val view = LocalView.current
             val context = view.context
+
 
             LiberMobileTheme {
                 Surface(
@@ -249,8 +262,9 @@ class MainActivity : ComponentActivity() {
                                                     }
                                                 },
                                                 modifier =
-                                                    Modifier
-                                                        .fillMaxWidth(),
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .focusRequester(searchFocusRequester),
                                                 textStyle = TextStyle.Default.copy(fontSize = 21.sp),
                                                 colors =
                                                     TextFieldDefaults.colors(
@@ -260,6 +274,9 @@ class MainActivity : ComponentActivity() {
                                                         unfocusedIndicatorColor = MaterialTheme.colorScheme.surface,
                                                     ),
                                             )
+                                            LaunchedEffect(Unit) {
+                                                searchFocusRequester.requestFocus()
+                                            }
                                         }
                                     } else if (hasGlobalSearch && isGlobalSearchOpen) {
                                         Row(modifier = Modifier.fillMaxWidth()) {
@@ -295,8 +312,9 @@ class MainActivity : ComponentActivity() {
                                                     }
                                                 },
                                                 modifier =
-                                                    Modifier
-                                                        .fillMaxWidth(),
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .focusRequester(globalSearchFocusRequester),
                                                 textStyle = TextStyle.Default.copy(fontSize = 21.sp),
                                                 colors =
                                                     TextFieldDefaults.colors(
@@ -306,6 +324,9 @@ class MainActivity : ComponentActivity() {
                                                         unfocusedIndicatorColor = MaterialTheme.colorScheme.surface,
                                                     ),
                                             )
+                                            LaunchedEffect(Unit) {
+                                                globalSearchFocusRequester.requestFocus()
+                                            }
                                         }
                                     } else
                                         Text(text = items[selectedIndex].title)
@@ -318,7 +339,7 @@ class MainActivity : ComponentActivity() {
                                         }) {
                                             Icon(Icons.Filled.Search, contentDescription = "Search")
                                         }
-//                                        TODO: add option to handle how the entries will be visualized and sorted
+//                                        TODO: add option to handle how the books will be visualized and sorted
                                     } else if (hasGlobalSearch && !isGlobalSearchOpen) {
                                         IconButton(onClick = {
                                             isGlobalSearchOpen = true
@@ -471,18 +492,20 @@ class MainActivity : ComponentActivity() {
                                         RecentScreen(viewModel, isLoading)
                                     }
 
-                                    // TODO: fare discover
                                     composable("discover") {
                                         DiscoverScreen(globalSearch, isLoading)
                                     }
-                                    // TODO: fare more
+                                    // TODO: more screen
                                     composable("more") {
-                                        Text(text = "More")
+                                        MoreScreen(navController)
+                                    }
+                                    composable("about") {
+                                        AboutScreen()
                                     }
                                 }
                             }
 
-                            // Filters Bottom Sheet for Discover screen
+                            // TODO: handle Filters Bottom Sheet for Discover screen
                             if (items[selectedIndex].route == "discover" && showBottomSheet) {
                                 ModalBottomSheet(
                                     onDismissRequest = {
@@ -502,7 +525,6 @@ class MainActivity : ComponentActivity() {
                                                 .padding(16.dp, 8.dp)
                                                 .fillMaxWidth(),
                                         )
-//                                        TODO: Aggiungere una row con titolo "Genere" e un selector con i generi
                                         Row {
 //                                            Text(
 //                                                text = "Genere",
@@ -590,3 +612,110 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun MoreScreen(
+    navController: androidx.navigation.NavController
+) {
+    Column {
+        moreItem(
+            title = "Settings",
+            icon = Icons.Default.Settings,
+            onClick = {},
+        )
+        moreItem(
+            title = "About",
+            icon = Icons.Default.Info,
+            onClick = {
+                navController.navigate("about")
+            },
+        )
+    }
+}
+
+@Composable
+fun moreItem(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp, 16.dp),
+        ) {
+            Text(
+                text = title,
+                fontSize = 18.sp,
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+            )
+        }
+    }
+}
+
+@Composable
+fun AboutScreen() {
+    Column {
+        // TODO: use the logo of liberMobile rather than the text
+        Text(
+            text = "liberMobile",
+            fontSize = 34.sp,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            text = "Libertas per Litteras", // TODO: change this to the real motto LMAO
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        AboutScreenItem(
+            title = "Version",
+            sub = "1.0.0",
+        )
+        val context = LocalView.current.context
+        AboutScreenItem(title = "Github Project", onClick = {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ReLoia/liberMobile"))
+            context.startActivity(intent)
+        })
+    }
+}
+
+@Composable
+fun AboutScreenItem(
+    title: String,
+    sub: String = "",
+    onClick: () -> Unit = {},
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 58.dp)
+            .let {
+                if (onClick != {}) {
+                    it.clickable(onClick = onClick)
+                } else {
+                    it
+                }
+            },
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(8.dp, 6.dp),
+        ) {
+            Text(text = title, fontSize = 18.sp)
+            if (sub.isNotEmpty()) {
+                Text(text = sub, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            }
+        }
+    }
+}

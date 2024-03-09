@@ -41,12 +41,7 @@ fun LibraryScreen(
 //                      Necessario perché recentItems diventa null dopo il controllo quando si cambia pagina
                         if (recentItems != null) {
                             items(recentItems!!.filter { it.title.contains(filter ?: "", ignoreCase = true) }) { item ->
-                                BookItem(
-                                    url = item.url,
-                                    title = item.title,
-                                    author = item.author,
-                                    cover = item.cover_url,
-                                )
+                                BookItem(item)
                             }
                         }
                     }

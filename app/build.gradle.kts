@@ -11,8 +11,8 @@ android {
         applicationId = "com.reloia.libermobile"
         minSdk = 29
         targetSdk = 34
-        versionCode = 6
-        versionName = "1.5-beta"
+        versionCode = 7
+        versionName = "1.6-beta"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -66,6 +66,8 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("androidx.navigation:navigation-runtime-ktx:2.7.7")
     implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.room:room-common:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

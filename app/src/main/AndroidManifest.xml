@@ -16,7 +16,7 @@
         android:theme="@style/Theme.LiberMobile"
         tools:targetApi="31">
         <activity
-            android:name=".BookInformationActivity"
+            android:name=".ui.bookinformation.BookInformationActivity"
             android:exported="false"
             android:label="@string/title_activity_browse"
             android:theme="@style/Theme.LiberMobile" />

@@ -1,4 +1,4 @@
-package com.reloia.libermobile
+package com.reloia.libermobile.ui.bookinformation
 
 import android.app.Activity
 import android.content.Intent
@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,9 +54,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import coil.compose.AsyncImage
+import com.reloia.libermobile.R
 import com.reloia.libermobile.model.BookItemData
-import com.reloia.libermobile.ui.bookinformation.BookInformationRepositoryImpl
-import com.reloia.libermobile.ui.bookinformation.BookInformationViewModel
+import com.reloia.libermobile.model.ReadingOption
 import com.reloia.libermobile.ui.theme.LiberMobileTheme
 import com.reloia.libermobile.utilities.LiberLiberClient
 
@@ -190,16 +192,26 @@ class BookInformationActivity : ComponentActivity() {
                                     Column(
                                         modifier = Modifier
                                             .align(alignment = androidx.compose.ui.Alignment.CenterVertically)
-                                            .heightIn(max = 145.dp)
+                                            .let {
+                                                if (!isTitleExpanded) {
+                                                    it.heightIn(max = 145.dp)
+                                                } else {
+                                                    it
+                                                }
+                                            }
                                             .padding(vertical = 8.dp),
                                     ) {
 //                                        Spacer(modifier = Modifier.size(8.dp))
                                         Text(
                                             text = bookData.title,
                                             fontSize = 28.sp,
-                                            // TODO: rimuovere animazione del click
-                                            modifier = Modifier.clickable {
-                                                isTitleExpanded = !isTitleExpanded
+                                            // TODO: remove click animation
+                                            modifier = Modifier.let {
+                                                if (bookData.title.length > 22) {
+                                                    it.clickable {
+                                                        isTitleExpanded = !isTitleExpanded
+                                                    }
+                                                } else it
                                             },
                                             maxLines = if (isTitleExpanded) Int.MAX_VALUE else 1,
                                             overflow = TextOverflow.Ellipsis,
@@ -211,7 +223,17 @@ class BookInformationActivity : ComponentActivity() {
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
                                         )
-                                        Spacer(modifier = Modifier.weight(1f))
+                                        Spacer(
+                                            modifier =
+                                                Modifier
+                                                    .let {
+                                                        if (isTitleExpanded) {
+                                                            it.size(12.dp)
+                                                        } else {
+                                                            it.weight(1f)
+                                                        }
+                                                    },
+                                        )
                                         Row {
 //                              TODO: check if book is in library
                                             var isInLibrary by rememberSaveable {
@@ -219,8 +241,7 @@ class BookInformationActivity : ComponentActivity() {
                                             }
 
                                             Row(
-                                                modifier =
-                                                Modifier
+                                                modifier = Modifier
                                                     .align(alignment = androidx.compose.ui.Alignment.CenterVertically)
                                                     .background(
                                                         color = MaterialTheme.colorScheme.primary,
@@ -234,7 +255,9 @@ class BookInformationActivity : ComponentActivity() {
 
                                                         Toast.makeText(
                                                             context,
-                                                            if (isInLibrary) "Aggiunto alla libreria" else "Rimosso dalla libreria",
+                                                            if (isInLibrary) getString(R.string.library_added) else getString(
+                                                                R.string.library_removed
+                                                            ),
                                                             Toast.LENGTH_SHORT,
                                                         ).show()
                                                     },
@@ -242,7 +265,7 @@ class BookInformationActivity : ComponentActivity() {
                                                     Crossfade(targetState = isInLibrary, label = "") {
                                                         Icon(
                                                             ImageVector.vectorResource(id = if (it) R.drawable.baseline_local_library_24 else R.drawable.outline_local_library_24),
-                                                            contentDescription = "Add to library",
+                                                            contentDescription = stringResource(R.string.library_description),
                                                             tint = MaterialTheme.colorScheme.onPrimary,
                                                             modifier = Modifier.size(24.dp),
                                                         )
@@ -269,20 +292,92 @@ class BookInformationActivity : ComponentActivity() {
 
                                 Spacer(modifier = Modifier.size(8.dp))
 
-                                // TODO: descrizione
                                 Text(
-                                    text = bookData.description ?: "Nessuna descrizione disponibile",
-//                                    modifier = Modifier.fillMaxWidth().heightIn(max = 100.dp),
+                                    text = (bookData.description ?: stringResource(R.string.book_description_not_available)) + "\n\n" +
+                                        stringResource(R.string.book_description_more_infos),
                                     maxLines = if (isDescriptionExpanded) Int.MAX_VALUE else 3,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.clickable {
                                         isDescriptionExpanded = !isDescriptionExpanded
                                     },
                                 )
+                                if (!isDescriptionExpanded && (bookData.description?.length ?: 0) > 150) {
+                                    Text(
+                                        text = stringResource(R.string.show_more),
+                                        modifier = Modifier.clickable {
+                                            isDescriptionExpanded = true
+                                        },
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.size(12.dp))
+                                Spacer(modifier = Modifier
+                                    .height((.5).dp)
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f)),)
+                                Spacer(modifier = Modifier.size(12.dp))
+
+                                Text(
+                                    text = stringResource(R.string.reading_options),
+                                    fontSize = 24.sp,
+                                )
+                                Spacer(modifier = Modifier.size(16.dp))
+                                Column {
+                                    bookData.reading_options?.forEachIndexed { index, it ->
+                                        BookReadingOption(it)
+                                        if (index != bookData.reading_options.size - 1) {
+                                            Spacer(modifier = Modifier
+                                                .height(1.dp)
+                                                .fillMaxWidth()
+                                                .background(
+                                                    MaterialTheme.colorScheme.secondary.copy(
+                                                        alpha = 0.5f
+                                                    )
+                                                ),
+                                            )
+                                        }
+                                    }
+                                    if (bookData.reading_options.isNullOrEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.no_available_reading_option),
+                                            fontSize = 18.sp,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun BookReadingOption(readingOption: ReadingOption) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+//          TODO: take to an activity to read the book
+
+            },
+    ) {
+        Row {
+            Text(
+                text = readingOption.name,
+                fontSize = 18.sp,
+                modifier = Modifier
+                    .padding(4.dp, 16.dp),
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = { /*TODO download button*/ }) {
+                Icon(
+                    ImageVector.vectorResource(id = R.drawable.baseline_download_24),
+                    contentDescription = "Download",
+                    modifier = Modifier.size(24.dp),
+                )
             }
         }
     }

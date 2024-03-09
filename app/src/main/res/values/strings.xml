@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">liberMobile</string>
+    <string name="app_name" translatable="false">liberMobile</string>
     <string name="library">Library</string>
     <string name="recent">Recent</string>
     <string name="search">Search</string>
@@ -12,4 +12,12 @@
     <string name="text_filter">Filtri</string>
     <string name="clear_search">Clear search</string>
     <string name="open_in_browser">Open in browser</string>
+    <string name="book_description_more_infos">Maggiori informazioni disponibili sulla Pagina Web</string>
+    <string name="book_description_not_available">Nessuna descrizione disponibile</string>
+    <string name="show_more">Mostra tutto</string>
+    <string name="no_available_reading_option">Nessuna opzione di lettura disponibile</string>
+    <string name="library_added">Aggiunto alla libreria</string>
+    <string name="library_removed">Rimosso dalla libreria</string>
+    <string name="library_description">Add to library</string>
+    <string name="reading_options">Opzioni di lettura</string>
 </resources>

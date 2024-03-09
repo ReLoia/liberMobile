@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class LibraryScreenViewModel(private val repository: RecentScreenRepository) : ViewModel() {
+class LibraryScreenViewModel(private val repository: LibraryScreenRepository) : ViewModel() {
     private val _bookItem = MutableStateFlow<List<BookItemData>?>(null)
     val bookItem: StateFlow<List<BookItemData>?> = _bookItem.asStateFlow()
 
@@ -19,7 +19,7 @@ class LibraryScreenViewModel(private val repository: RecentScreenRepository) : V
     private fun loadRecentItems() {
         viewModelScope.launch {
             try {
-                _bookItem.value = repository.getRecentItems()
+                _bookItem.value = repository.getLibraryItems()
             } catch (e: Exception) {
                 // TODO: Handle errors appropriately
             }

@@ -27,7 +27,7 @@ abstract class HTTPClient(open var context: Context) {
     /**
      * Returns the Request URL of the Search Page of the website
      *
-     * TODO: in the future implement filters
+     * TODO: implement filters
      */
     abstract fun searchBookRequest(
         page: Int,

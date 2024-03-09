@@ -1,8 +1,8 @@
 package com.reloia.libermobile.utilities
 
 import android.content.Context
-import android.util.Log
 import com.reloia.libermobile.model.BookItemData
+import com.reloia.libermobile.model.ReadingOption
 import okhttp3.Request
 import org.jsoup.nodes.Document
 
@@ -23,7 +23,7 @@ class LiberLiberClient(context: Context) : HTTPClient(context) {
             bookList.add(
                 BookItemData(
                     it.attr("href"),
-                    it.attr("aria-label"),
+                    it.parent()?.parent()?.parent()?.select(".entry-title a")?.text() ?: "Error",
                     parseAuthorName(it.attr("href").split("/")[3]),
                     // Image is not available in the search results
                 ),
@@ -38,7 +38,7 @@ class LiberLiberClient(context: Context) : HTTPClient(context) {
     private fun parseAuthorName(author: String): String =
         author.split("-").joinToString(" ") { it.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } }
 
-    // TODO: controllare che sia compatibile con qualsiasi input
+    // TODO: check full compatibility with any input
     private fun deParseString(string: String): String =
         string.replace(" ", "-").lowercase()
             .replace("à", "a")
@@ -62,7 +62,7 @@ class LiberLiberClient(context: Context) : HTTPClient(context) {
         val books = document.select(recentBookSelector)
         val bookList = mutableListOf<BookItemData>()
 
-        Log.w("LiberLiberClient", "parseRecentResults: $books")
+//        Log.w("LiberLiberClient", "parseRecentResults: $books")
 
         books.forEach {
             var fullTitleAndAuthor = it.text().split(" di ")
@@ -82,16 +82,25 @@ class LiberLiberClient(context: Context) : HTTPClient(context) {
     }
 
     override fun parseMoreBookInfo(document: Document): BookItemData {
-        val title = document.select(".ll_metadati_etichetta:contains(titolo) + .ll_metadati_dato").text()
+        val title = document.select(".ll_metadati_etichetta:contains(titolo) + .ll_metadati_dato").first()?.text() ?: ""
         val author = document.select(".ll_metadati_etichetta:contains(autore) + .ll_metadati_dato").text()
         val cover = document.select("#content .slides img").attr("src")
         val description = document.select(".ll_metadati_etichetta:contains(descrizione) + .ll_metadati_dato").text()
+
+        val downloadOptions = document.select(".ll_opera_riga ~ a")
+
         return BookItemData(
             urlFromTitleAndAuthor(title, author),
             title,
             author,
             cover,
             description,
+            downloadOptions.map {
+                ReadingOption(
+                    it.child(0).attr("alt"),
+                    it.attr("href"),
+                )
+            },
         )
     }
 }

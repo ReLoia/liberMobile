@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import com.reloia.libermobile.model.BookItemData
 import com.reloia.libermobile.ui.common.BookItem
 
 @Composable
@@ -31,7 +32,6 @@ fun RecentScreen(
     ) {
         Column {
             when (recentItems) {
-                // TODO: move to isLoading state
                 null -> 0 == 0 // CircularProgressIndicator()
                 emptyList<RecentItem>() -> Text("No recent items found")
                 else -> {
@@ -42,10 +42,12 @@ fun RecentScreen(
                         if (recentItems != null) {
                             items(recentItems!!.sortedByDescending { it.timestamp }) { item ->
                                 BookItem(
-                                    url = item.bookData.url,
-                                    title = item.bookData.title,
-                                    author = item.bookData.author,
-                                    cover = item.bookData.cover_url,
+                                    BookItemData(
+                                        item.bookData.url,
+                                        item.bookData.title,
+                                        item.bookData.author,
+                                        item.bookData.cover_url
+                                    )
                                 )
                             }
                         }

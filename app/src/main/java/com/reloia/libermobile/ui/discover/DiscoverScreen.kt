@@ -58,16 +58,6 @@ fun DiscoverScreen(
         Column(
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(1.dp),
         ) {
-//            TODO: cambiare questa condizione con un controllo 'se ci sono risultati' e mostrare un messaggio di errore più efficace
-//            if (search.isEmpty() && !filter) {
-//                Text(
-//                    text = "Cerca un libro dalla barra di ricerca oppure filtra i risultati",
-//                    modifier =
-//                        Modifier
-//                            .fillMaxWidth()
-//                            .padding(8.dp, 8.dp),
-//                )
-//            }
             when (books) {
 //                null -> CircularProgressIndicator()
                 null -> isLoading.value = true
@@ -78,16 +68,11 @@ fun DiscoverScreen(
                         if (books != null)
                             items(
                                 books!!.filter {
-                                    // TODO: implement search functionality
+                                    // TODO: implement filters
                                     true
                                 },
                             ) { item ->
-                                BookItem(
-                                    url = item.url,
-                                    title = item.title,
-                                    author = item.author,
-                                    cover = item.cover_url,
-                                )
+                                BookItem(item)
                             }
 
 //                        TODO: implement pagination
