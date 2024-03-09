@@ -14,7 +14,6 @@ class DiscoverScreenRepositoryImpl(
 ) : DiscoverScreenRepository {
     override suspend fun getDiscoverData(): List<BookItemData> {
         var fetchedData: List<BookItemData> = emptyList()
-//        queryData.query.isEmpty()
         val discoverRequest =
             when (queryData.query) {
                 "" -> liberLiberClient.recentBookRequest(queryData.page)

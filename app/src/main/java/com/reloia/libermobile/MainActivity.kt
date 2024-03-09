@@ -204,18 +204,17 @@ class MainActivity : ComponentActivity() {
 
             val view = LocalView.current
             val context = view.context
-            val inDarkMode = isSystemInDarkTheme()
 
             LiberMobileTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
+                    val inDarkMode = isSystemInDarkTheme()
                     val backgroundColor = MaterialTheme.colorScheme.background
                     SideEffect {
                         (context as Activity).window.statusBarColor = backgroundColor.toArgb()
                         WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !inDarkMode
-//                            DarkColor
                     }
                     Scaffold(
                         topBar = {
@@ -464,12 +463,12 @@ class MainActivity : ComponentActivity() {
                                     composable("library") {
                                         val viewModel =
                                             LibraryScreenViewModel(LibraryScreenRepositoryImpl())
-                                        LibraryScreen(viewModel, search)
+                                        LibraryScreen(viewModel, search, isLoading)
                                     }
                                     composable("recent") {
                                         val viewModel =
                                             RecentScreenViewModel(RecentScreenRepositoryImpl())
-                                        RecentScreen(viewModel)
+                                        RecentScreen(viewModel, isLoading)
                                     }
 
                                     // TODO: fare discover

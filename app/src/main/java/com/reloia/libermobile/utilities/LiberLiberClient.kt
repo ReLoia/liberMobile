@@ -39,14 +39,27 @@ class LiberLiberClient(context: Context) : HTTPClient(context) {
         author.split("-").joinToString(" ") { it.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } }
 
     // TODO: controllare che sia compatibile con qualsiasi input
-    private fun deParseString(string: String): String = string.replace(" ", "-").lowercase().replace("'", "")
+    private fun deParseString(string: String): String =
+        string.replace(" ", "-").lowercase()
+            .replace("à", "a")
+            .replace("è", "e")
+            .replace("é", "e")
+            .replace("ì", "i")
+            .replace("ò", "o")
+            .replace("ù", "u")
+            .replace("’", "")
+            .replace(".", "")
+            .replace(",", "")
 
-    override val listBookSelector: String = "h2.entry-title > a"
+    private fun urlFromTitleAndAuthor(title: String, author: String): String =
+        "$baseURL/autori/autori-${deParseString(author).split("-").last().first().lowercase()}/${deParseString(author)}/${deParseString(title)}/"
+
+    override val recentBookSelector: String = "h2.entry-title > a"
 
     override fun recentBookRequest(page: Int): Request = GET("$baseURL/category/progetti/manuzio/page/$page/")
 
     override fun parseRecentResults(document: Document): List<BookItemData> {
-        val books = document.select(listBookSelector)
+        val books = document.select(recentBookSelector)
         val bookList = mutableListOf<BookItemData>()
 
         Log.w("LiberLiberClient", "parseRecentResults: $books")
@@ -58,7 +71,7 @@ class LiberLiberClient(context: Context) : HTTPClient(context) {
 
             bookList.add(
                 BookItemData(
-                    "$baseURL/autori/autori-${deParseString(author).split("-")[1].first().lowercase()}/${deParseString(author)}/${deParseString(title)}/",
+                    urlFromTitleAndAuthor(title, author),
                     title,
                     author,
                     it.parent()?.parent()?.parent()?.parent()?.select("img")?.attr("src"),
@@ -66,5 +79,19 @@ class LiberLiberClient(context: Context) : HTTPClient(context) {
             )
         }
         return bookList
+    }
+
+    override fun parseMoreBookInfo(document: Document): BookItemData {
+        val title = document.select(".ll_metadati_etichetta:contains(titolo) + .ll_metadati_dato").text()
+        val author = document.select(".ll_metadati_etichetta:contains(autore) + .ll_metadati_dato").text()
+        val cover = document.select("#content .slides img").attr("src")
+        val description = document.select(".ll_metadati_etichetta:contains(descrizione) + .ll_metadati_dato").text()
+        return BookItemData(
+            urlFromTitleAndAuthor(title, author),
+            title,
+            author,
+            cover,
+            description,
+        )
     }
 }

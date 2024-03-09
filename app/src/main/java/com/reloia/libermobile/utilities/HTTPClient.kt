@@ -20,16 +20,13 @@ abstract class HTTPClient(open var context: Context) {
     val headers: Headers by lazy { Headers.Builder().add("User-Agent", userAgent).build() }
 
     /**
-     * Selector for the search page of the website
-     *
-     * e.g. "a.fusion-read-more[href^='https://liberliber.it/autori/autori-p/']"
+     * Selector for the items of the Search Page
      */
     abstract val searchBookSelector: String
 
     /**
-     * Returns the Request URL for the search
+     * Returns the Request URL of the Search Page of the website
      *
-     * e.g. https://liberliber.it/?s=query
      * TODO: in the future implement filters
      */
     abstract fun searchBookRequest(
@@ -39,16 +36,35 @@ abstract class HTTPClient(open var context: Context) {
     ): Request
 
     /**
-     * Returns the list of books from the search results
+     * Returns the list of books from the Search Page of the website
      */
     abstract fun parseSearchResults(document: Document): List<BookItemData>
 
-    abstract val listBookSelector: String
+    /**
+     * Selector for the items of the Recent Books Page
+     */
+    abstract val recentBookSelector: String
 
+    /**
+     * Returns the Request URL of the Recent Books Page of the website
+     *
+     * The Recent Books Page is the page that contains the most recent books added to the website
+     */
     abstract fun recentBookRequest(page: Int): Request
 
+    /**
+     * Returns the list of books from the Recent Books Page of the website
+     */
     abstract fun parseRecentResults(document: Document): List<BookItemData>
 
+    /**
+     * Returns the BookItemData with more information about the book
+     */
+    abstract fun parseMoreBookInfo(document: Document): BookItemData
+
+    /**
+     * These are the default values for the client, if you want to change them you can override this property
+     */
     open val client: OkHttpClient
         get() =
             OkHttpClient.Builder().addInterceptor { chain ->

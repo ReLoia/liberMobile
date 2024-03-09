@@ -15,5 +15,6 @@ data class BookItemData(
     val title: String,
     val author: String,
 //    val timestamp: Long,
-    val cover_url: String? = null
+    val cover_url: String? = null,
+    val description: String? = null,
 )
